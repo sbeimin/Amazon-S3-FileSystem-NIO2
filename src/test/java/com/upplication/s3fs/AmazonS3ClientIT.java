@@ -5,7 +5,6 @@ import static com.upplication.s3fs.AmazonS3Factory.SECRET_KEY;
 import static com.upplication.s3fs.util.EnvironmentBuilder.getRealEnv;
 import static java.util.UUID.randomUUID;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -15,15 +14,13 @@ import java.nio.file.StandardOpenOption;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Test;
 
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.upplication.s3fs.util.EnvironmentBuilder;
-import org.junit.Test;
 
 public class AmazonS3ClientIT {
 
