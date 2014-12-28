@@ -41,7 +41,7 @@ public class ProviderSpecTest {
 		assertTrue(Files.notExists(base.resolve("file1.html")));
 	}
 
-	// FIXME @Test
+	@Test
 	public void seekable() throws IOException {
 		Path base = Files.createDirectories(fs.getPath("/dir"));
 		// in windows throw exception
@@ -51,9 +51,10 @@ public class ProviderSpecTest {
 			ByteBuffer buffer = ByteBuffer.wrap("content".getBytes());
 			seekable.position(7);
 			seekable.write(buffer);
-
+			
 			ByteBuffer bufferRead = ByteBuffer.allocate(7);
 			bufferRead.clear();
+			seekable.position(7);
 			seekable.read(bufferRead);
 
 			assertArrayEquals(bufferRead.array(), buffer.array());
