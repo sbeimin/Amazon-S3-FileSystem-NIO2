@@ -24,7 +24,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.*;
+import java.nio.file.AccessMode;
+import java.nio.file.CopyOption;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileStore;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.LinkOption;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -43,7 +54,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Spec:
@@ -73,6 +83,7 @@ import org.apache.commons.codec.binary.Base64;
  */
 public class S3FileSystemProvider extends FileSystemProvider {
 
+	private static final String AUTHORITY_SEPERATOR = "@";
 	public static final String CHARSET_KEY = "s3fs_charset";
 	public static final String AMAZON_S3_FACTORY_CLASS = "s3fs_amazon_s3_factory";
 
@@ -126,23 +137,21 @@ public class S3FileSystemProvider extends FileSystemProvider {
 	protected String getFileSystemKey(URI uri, Properties props) {
         String uriString = uri.toString().replace("s3://", "");
         String authority = null;
-        int authoritySeparator = uriString.indexOf("@");
-        if (authoritySeparator > 0){
-            authority = uriString.substring(0, authoritySeparator);
+        int authoritySeparatorIndex = uriString.indexOf(AUTHORITY_SEPERATOR);
+        if (authoritySeparatorIndex > 0){
+            authority = uriString.substring(0, authoritySeparatorIndex);
         }
         if (authority != null) {
-            String host = uriString.substring(uriString.indexOf("@")+1, uriString.length());
+            String host = uriString.substring(uriString.indexOf(AUTHORITY_SEPERATOR)+1, uriString.length());
             int lastPath = host.indexOf("/");
             if (lastPath > 0){
                 host = host.substring(0, lastPath);
             }
-            return authority + "@" + host;
+            return authority + AUTHORITY_SEPERATOR + host;
         }
-        else {
-            String accessKey = (String) props.get(ACCESS_KEY);
-
-            return (accessKey != null ? accessKey+"@" : "" ) + uri.getHost();
-        }
+        if(props.containsKey(ACCESS_KEY))
+        	return ((String) props.get(ACCESS_KEY)) + AUTHORITY_SEPERATOR + uri.getHost();
+		return uri.getHost();
 	}
 
 	protected void validateUri(URI uri) {
@@ -180,13 +189,9 @@ public class S3FileSystemProvider extends FileSystemProvider {
 	public S3FileSystem getFileSystem(URI uri) {
 		validateUri(uri);
 		String key = this.getFileSystemKey(uri);
-		if (fileSystems.containsKey(key)) {
-            return fileSystems.get(key);
-        }
-        else{
-            throw new FileSystemNotFoundException(
-                    String.format("S3 filesystem not yet created. Use newFileSystem() instead"));
-        }
+		if (fileSystems.containsKey(key))
+			return fileSystems.get(key);
+		throw new FileSystemNotFoundException(String.format("S3 filesystem not yet created. Use newFileSystem() instead"));
 	}
 
 	private S3Path toS3Path(Path path) {
