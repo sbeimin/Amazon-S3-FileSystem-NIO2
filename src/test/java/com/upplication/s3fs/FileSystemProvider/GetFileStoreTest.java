@@ -1,21 +1,27 @@
 package com.upplication.s3fs.FileSystemProvider;
 
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+
+import java.io.IOException;
+import java.nio.file.FileStore;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.Properties;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.upplication.s3fs.S3FileSystem;
 import com.upplication.s3fs.S3FileSystemProvider;
 import com.upplication.s3fs.S3UnitTestBase;
 import com.upplication.s3fs.util.AmazonS3ClientMock;
 import com.upplication.s3fs.util.AmazonS3MockFactory;
 import com.upplication.s3fs.util.S3EndpointConstant;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.Properties;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
 
 public class GetFileStoreTest extends S3UnitTestBase {
 
@@ -29,7 +35,7 @@ public class GetFileStoreTest extends S3UnitTestBase {
     }
 
 
-    @Test(expected = UnsupportedOperationException.class)
+	@Test
     public void getFileStore() throws IOException {
         // fixtures
         AmazonS3ClientMock client = AmazonS3MockFactory.getAmazonClientMock();
@@ -38,7 +44,8 @@ public class GetFileStoreTest extends S3UnitTestBase {
         // act
         Path file1 = createNewS3FileSystem().getPath("/bucketA/dir/file1");
         // assert
-        s3fsProvider.getFileStore(file1);
+		FileStore fileStore = s3fsProvider.getFileStore(file1);
+		assertNotNull(fileStore);
     }
 
     /**
