@@ -373,7 +373,7 @@ public class S3Path implements Path {
 
     @Override
     public Path resolve(String other) {
-        return resolve(new S3Path(this.getFileSystem(), other));
+		return resolve(new S3Path(this.getFileSystem(), URI.create(other).getPath()));
     }
 
     @Override
