@@ -353,27 +353,32 @@ public class S3Path implements Path {
 
     @Override
     public Path resolve(Path other) {
+		String otherUri = null;
         if (other.isAbsolute()) {
-            Preconditions.checkArgument(other instanceof S3Path, "other must be an instance of %s", S3Path.class.getName());
+            Preconditions.checkArgument(other instanceof S3Path, "other must be an instance of %s or be relative", S3Path.class.getName());
             return other;
+		} else if (!(other instanceof S3Path)) {
+			otherUri = other.toString(); //it's relative
+		} else {
+			S3Path otherS3Path = (S3Path) other;
+			otherUri = otherS3Path.uri;
         }
 
-        S3Path otherS3Path = (S3Path) other;
         StringBuilder pathBuilder = new StringBuilder();
 
         if (this.isAbsolute()) {
             pathBuilder.append(PATH_SEPARATOR + this.fileStore.name() + PATH_SEPARATOR);
         }
         pathBuilder.append(this.uri);
-        if (!otherS3Path.uri.isEmpty())
-            pathBuilder.append(PATH_SEPARATOR + otherS3Path.uri);
+		if (!otherUri.isEmpty())
+			pathBuilder.append(PATH_SEPARATOR + otherUri);
 
         return new S3Path(this.fileSystem, pathBuilder.toString());
     }
 
     @Override
     public Path resolve(String other) {
-        return resolve(new S3Path(this.getFileSystem(), other));
+		return resolve(new S3Path(this.getFileSystem(), URI.create(other).getPath()));
     }
 
     @Override
